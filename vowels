@@ -1,0 +1,30 @@
+%{
+#include <stdio.h>
+#include <string.h>
+int vowel_count = 0;
+int total_words = 0;
+%}
+
+%%
+
+[a-zA-Z]*[aeiouAEIOU][a-zA-Z]* {
+    vowel_count++;
+    printf("%s(%d) ", yytext, vowel_count);
+    total_words++;
+}
+
+[a-zA-Z]+ {
+    printf("%s ", yytext);
+    total_words++;
+}
+
+[ \t\n] ;
+%%
+
+int yywrap(void) {}
+
+int main() {
+    yylex();
+    printf("\nTotal words: %d\n", total_words);
+    return 0;
+}
