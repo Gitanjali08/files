@@ -1,0 +1,45 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+int vowel_count = 0;
+int total_words = 0;
+void append_vowel_count(char *word);
+
+%}
+
+%%
+[aAeEiIoOuU][a-zA-Z]*   { vowel_count++; total_words++; append_vowel_count(yytext); }
+[a-zA-Z]+               { total_words++; }
+.                       { /* Ignore other characters */ }
+
+%%
+
+void append_vowel_count(char *word) {
+    printf("%s%d ", word, vowel_count);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        exit(1);
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("fopen");
+        exit(1);
+    }
+
+    yyin = file;
+    yylex();
+    
+    fclose(file);
+    
+    printf("\nTotal words read: %d\n", total_words);
+    printf("Total words starting with a vowel: %d\n", vowel_count);
+
+    return 0;
+}
