@@ -1,0 +1,56 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int char_count = 0;
+int word_count = 0;
+int line_count = 0;
+int in_comment_line = 0;
+
+void update_counts(const char *text);
+%}
+
+%%
+"abc"               { printf("ABC"); char_count += 3; }
+[a-zA-Z]+           { update_counts(yytext); printf("%s", yytext); }
+[^ \t\n#]+          { update_counts(yytext); printf("%s", yytext); }
+" "                 { char_count++; printf(" "); }
+"\t"                { char_count++; printf("\t"); }
+\n                  { if (!in_comment_line) line_count++; in_comment_line = 0; char_count++; printf("\n"); }
+"#"[^\n]*\n         { in_comment_line = 1; printf("%s", yytext); char_count += yyleng; }
+
+.                   { char_count++; printf("%s", yytext); }
+
+%%
+
+void update_counts(const char *text) {
+    if (!in_comment_line) {
+        char_count += strlen(text);
+        word_count++;
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        exit(1);
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("fopen");
+        exit(1);
+    }
+
+    yyin = file;
+    yylex();
+    
+    fclose(file);
+    
+    printf("\nTotal characters read: %d\n", char_count);
+    printf("Total words read: %d\n", word_count);
+    printf("Total lines read: %d\n", line_count);
+
+    return 0;
+}
